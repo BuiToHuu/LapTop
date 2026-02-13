@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # --- PHẦN 1: DATABASE (Cái kho) ---
+  db:
+    image: mysql:8.0
+    container_name: Laptop-MySQL
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ToHuu
+      MYSQL_DATABASE: laptopdb
+      MYSQL_USER: ToHuu
+      MYSQL_PASSWORD: ToHuu
+    ports:
+      - "3306:3306"
+    volumes:
+      # Ánh xạ dữ liệu SQL ra ổ D
+      - "D:/Huu/KetThucThatRoi/BanLapTop/DaTa/SQL:/var/lib/mysql"
+
+  # --- PHẦN 2: SPRING BOOT APP (Cửa hàng) ---
+  # app:
+  #   build:
+  #     # Dùng dấu / để đảm bảo Docker Engine đọc đúng
+  #     context: "D:/Huu/KetThucThatRoi/BanLapTop/BanLapTop"
+  #     dockerfile: Dockerfile
+  #   container_name: Laptop-App
+  #   ports:
+  #     - "8080:8080"
+  #   restart: always
+  #   depends_on:
+  #     - db
+  #   environment:
+  #     # db ở đây là tên service của MySQL phía trên
+  #     - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/laptopdb?useSSL=false&allowPublicKeyRetrieval=true
+  #     - SPRING_DATASOURCE_USERNAME=ToHuu
+  #     - SPRING_DATASOURCE_PASSWORD=ToHuu
+  #   volumes:
+  #     # Ánh xạ thư mục chứa ảnh ra ổ D
+  #     - "D:/Huu/KetThucThatRoi/BanLapTop/DaTa/Images:/app/uploads"
