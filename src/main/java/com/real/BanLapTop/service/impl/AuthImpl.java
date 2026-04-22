@@ -1,0 +1,80 @@
+package com.real.BanLapTop.service.impl;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import com.real.BanLapTop.security.*;
+import com.real.BanLapTop.dto.request.user.LoginRequest;
+import com.real.BanLapTop.dto.response.AuthResponse;
+import com.real.BanLapTop.entity.User;
+import com.real.BanLapTop.exception.ResourceNotFoundException;
+import com.real.BanLapTop.repository.UserRepository;
+import com.real.BanLapTop.service.AuthService;
+import com.real.BanLapTop.entity.UserStatus;
+
+@Service
+public class AuthImpl implements AuthService {
+
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+
+    public AuthImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
+    }
+
+    // @Override
+    // public AuthResponse loginUser(LoginRequest request) {
+    // // 1. Tìm user theo username
+    // User user = userRepository.findByUsername(request.getUsername())
+    // .orElseThrow(() -> new ResourceNotFoundException("Username không tồn tại!"));
+
+    // // 2. Kiểm tra mật khẩu (So sánh mật khẩu thô và mật khẩu đã mã hóa trong DB)
+    // if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+    // throw new RuntimeException("Mật khẩu không chính xác!");
+    // }
+
+    // // 3. Tạo Token (Giả sử Huu đã có lớp JwtUtil)
+    // String token = jwtUtil.generateToken(user.getUsername(),
+    // user.getRole().name());
+
+    // // 4. Trả về AuthResponse chứa Token và role
+    // AuthResponse response = new AuthResponse();
+    // response.setToken(token);
+    // response.setRole(user.getRole().name());
+    // response.setUserId(user.getId());
+    // return response;
+
+    // }
+
+    @Override
+    public AuthResponse loginUser(LoginRequest request) {
+
+        // 1. Tìm user
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new ResourceNotFoundException("Username không tồn tại!"));
+
+        // ❗ 2. CHECK STATUS (THÊM ĐOẠN NÀY)
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new RuntimeException("Tài khoản đã bị khóa hoặc ngưng hoạt động!");
+        }
+
+        // 3. Check password
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new RuntimeException("Mật khẩu không chính xác!");
+        }
+
+        // 4. Tạo JWT
+        String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
+
+        // 5. Response
+        AuthResponse response = new AuthResponse();
+        response.setToken(token);
+        response.setRole(user.getRole().name());
+        response.setUserId(user.getId());
+
+        return response;
+    }
+}
